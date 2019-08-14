@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module IRC2NMode.Types
+module Haskem.Types
     ( GaussianInfo(..),
       method,
       scfEnergy,

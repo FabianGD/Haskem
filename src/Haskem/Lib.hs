@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module IRC2NMode.Lib
+module Haskem.Lib
     ( gaussianParser,
       isEmpty,
       trim,
@@ -19,7 +19,7 @@ import              Lens.Micro.Platform
 
 gaussianParser :: Parser GaussianInfo
 gaussianParser = do
-    -- TODO --> Read XYZ files
+    -- TODO --> Read XYZ section in Gaussian files
 
     -- Find the SCF Done tag
     _ <- manyTill anyChar (string "SCF Done:") *> skipSpace

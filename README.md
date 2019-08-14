@@ -1,1 +1,2 @@
-# iirc2nmodes
+# Haskem
+Doing computational chemistry with Haskell

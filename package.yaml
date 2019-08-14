@@ -1,4 +1,4 @@
-name:                iirc2nmodes
+name:                Haskem
 version:             0.1.0.0
 github:              "FabianGD/iirc2nmodes"
 license:             MIT
@@ -17,7 +17,7 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/githubuser/iirc2nmodes#readme>
+description:         Please see the README on GitHub at <https://github.com/fabiangd/Haskem#readme>
 
 dependencies:
 - base >= 4.7 && < 5
