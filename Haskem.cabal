@@ -1,0 +1,75 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.2.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 42c86154bc345ebd571c88b8c9b3c74c5d5f0732e41173103be1805fbf1cb13b
+
+name:           Haskem
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/fabiangd/Haskem#readme>
+homepage:       https://github.com/FabianGD/iirc2nmodes#readme
+bug-reports:    https://github.com/FabianGD/iirc2nmodes/issues
+author:         Fabian George Droege
+maintainer:     fabian.g.droege@gmail.com
+copyright:      2019 Fabian George Droege
+license:        MIT
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+    ChangeLog.md
+
+source-repository head
+  type: git
+  location: https://github.com/FabianGD/iirc2nmodes
+
+library
+  exposed-modules:
+      Haskem.Lib
+      Haskem.Types
+  other-modules:
+      Paths_Haskem
+  hs-source-dirs:
+      src
+  build-depends:
+      attoparsec
+    , base >=4.7 && <5
+    , filepath
+    , microlens-platform
+    , text
+  default-language: Haskell2010
+
+executable Haskem-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_Haskem
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      Haskem
+    , attoparsec
+    , base >=4.7 && <5
+    , filepath
+    , microlens-platform
+    , text
+  default-language: Haskell2010
+
+test-suite Haskem-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_Haskem
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      Haskem
+    , attoparsec
+    , base >=4.7 && <5
+    , filepath
+    , microlens-platform
+    , text
+  default-language: Haskell2010

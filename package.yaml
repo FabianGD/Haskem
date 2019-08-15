@@ -30,7 +30,7 @@ library:
   source-dirs: src
 
 executables:
-  iirc2nmodes-exe:
+  Haskem-exe:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -38,10 +38,10 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - iirc2nmodes
+    - Haskem
 
 tests:
-  iirc2nmodes-test:
+  Haskem-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
@@ -49,4 +49,4 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - iirc2nmodes
+    - Haskem
