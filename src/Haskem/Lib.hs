@@ -4,38 +4,62 @@ module Haskem.Lib
     ( trim,
       doGaussianParsing,
       doFreqParsing,
-      doGenericParsing
+      doGenericParsing,
+      xyzParser,
+      gaussianFreqParser,
+      gaussianParser,
+      elemMass,
+      elemSym2Num,
+      calculateCoM
     ) where
 
 import              Haskem.Types
 import              Control.Applicative
 import              Data.Attoparsec.Text.Lazy   hiding (take)
-import qualified    Data.Text                   as T 
+import qualified    Data.Text                   as T
 import qualified    Data.Text.IO                as TIO
 import              Data.Char
+import              Data.Maybe
 import              Data.List                   hiding (takeWhile)
 import              Lens.Micro.Platform
 import              Prelude                     hiding (takeWhile)
 import              Debug.Trace
+import              Data.Tuple.HT               hiding (double, triple)
+import qualified    Data.Map.Strict             as Map
 
 
-convertElemSym2Num :: String -> Int
-convertElemSym2Num "H"  = 1
-convertElemSym2Num "He" = 2
-convertElemSym2Num "Li" = 3
-convertElemSym2Num "Be" = 4
-convertElemSym2Num "B"  = 5
-convertElemSym2Num "C"  = 6
-convertElemSym2Num "N"  = 7
-convertElemSym2Num "O"  = 8
-convertElemSym2Num "S"  = 16
-convertElemSym2Num _    = 0
+elemSym2Num :: String -> Int
+elemSym2Num elemSym = fromMaybe 0 $ Map.lookup elemSym elemMap  
+    where elemMap = Map.fromList [("H", 1),     ("He", 2),  ("Li", 3), 
+                                  ("Be", 4),    ("B", 5),   ("C", 6),
+                                  ("N", 7),     ("O", 8),   ("F", 9), 
+                                  ("Ne", 10),   ("Na", 11), ("Mg", 12),
+                                  ("Al", 13),   ("Si", 14), ("P", 15),
+                                  ("S", 16),    ("Cl", 17), ("Ar", 18)]
+
+elemNum2Sym :: Int -> String
+elemNum2Sym elemSym = fromMaybe "" $ Map.lookup elemSym elemMap  
+    where elemMap = Map.fromList $ map swap [("H", 1),     ("He", 2),  ("Li", 3), 
+                                             ("Be", 4),    ("B", 5),   ("C", 6),
+                                             ("N", 7),     ("O", 8),   ("F", 9), 
+                                             ("Ne", 10),   ("Na", 11), ("Mg", 12),
+                                             ("Al", 13),   ("Si", 14), ("P", 15),
+                                             ("S", 16),    ("Cl", 17), ("Ar", 18)]
+                                            
+
+elemMass :: Int -> Double
+elemMass elemNum = fromMaybe 1 $ Map.lookup elemNum elemMap  
+    where elemMap = Map.fromList [(1, 1.0079),      (2, 4.0026),    (3, 6.941), 
+                                  (4, 9.0122),      (5, 10.811),    (6, 12.0107),
+                                  (7, 14.0067),     (8, 15.9994),   (9, 18.9984),
+                                  (10, 20.1797),    (11, 22.9897),  (12, 24.305),
+                                  (13, 26.9815),    (14, 28.0855),  (15, 30.9738),
+                                  (16, 32.065),     (17, 35.453),   (18, 39.948)]
 
 
 
-
-parseXYZFile :: Parser Molecule
-parseXYZFile = do
+xyzParser :: Parser Molecule
+xyzParser = do
     skipSpace
     nrOfAtoms' <- decimal
 
@@ -44,15 +68,15 @@ parseXYZFile = do
 
     atoms' <- count nrOfAtoms' $ do
         skipSpace
-        
+
         elementSym' <- manyTill anyChar space
-        let elemNum' = convertElemSym2Num elementSym'
+        let elemNum' = elemSym2Num elementSym'
 
         skipSpace
         coordx' <- double <* skipSpace
         coordy' <- double <* skipSpace
         coordz' <- double
-        
+
         _ <- takeWhile (not <$> isEndOfLine) *> endOfLine
 
         return Atom {
@@ -62,7 +86,7 @@ parseXYZFile = do
         }
 
     return Molecule {
-        _molName    = Nothing,
+        _molName    = "",
         _nrOfAtoms  = nrOfAtoms',
         _atoms      = atoms'
     }
@@ -74,7 +98,7 @@ gaussianParseXYZ = do
 
     -- Center number is not required
     centerNumber' <- decimal <* skipSpace
-    
+
     -- Atom (element) number
     atomNumber' <- decimal <* skipSpace
 
@@ -97,13 +121,13 @@ gaussianParseXYZ = do
 gaussianParser :: Parser GaussianInfo
 gaussianParser = do
     -- TODO --> Read Internal coordinates
-    
+
     -- ==> Read XYZ section in Gaussian files
-    _ <- manyTill anyChar (string "Standard orientation") 
-    
-    _ <- count 5 $ do 
+    _ <- manyTill anyChar (string "Standard orientation")
+
+    _ <- count 5 $ do
         _ <- takeWhile (not <$> isEndOfLine)
-        endOfLine    
+        endOfLine
 
     -- Arriving at first digit
     -- skipSpace
@@ -114,9 +138,9 @@ gaussianParser = do
     nrOfAtoms' <- parseNAtoms
 
     let molecule' = Molecule {
-        _molName = Nothing,
+        _molName = "",
         _nrOfAtoms = nrOfAtoms',
-        _atoms = atoms'    
+        _atoms = atoms'
     }
 
     -- Find the SCF Done tag
@@ -125,11 +149,11 @@ gaussianParser = do
     -- ==> Read the method tag from the following brackets
     method' <- string "E(" *> manyTill anyChar (string ")")
     _ <- skipSpace *> string "=" *> skipSpace
-    
+
     -- Read the SCF energy
     scfEnergy' <- double
     -- _ <- manyTill anyChar endOfLine
-    
+
     -- Return the data to the GaussianInfo data type
     return GaussianInfo {
         _method     = method',
@@ -139,11 +163,11 @@ gaussianParser = do
 
 
 parseNAtoms :: Parser Int
-parseNAtoms = manyTill anyChar (string "NAtoms=") *> skipSpace *> decimal 
+parseNAtoms = manyTill anyChar (string "NAtoms=") *> skipSpace *> decimal
 
 
 gaussianFreqParser :: Parser [NormalMode]
-gaussianFreqParser = do 
+gaussianFreqParser = do
 
     nrAtoms' <- parseNAtoms
     _ <- manyTill anyChar (string "normal coordinates:")
@@ -151,7 +175,7 @@ gaussianFreqParser = do
     -- traceShowM test'
 
     _ <- takeWhile (not <$> isEndOfLine)
-    endOfLine    
+    endOfLine
 
     normalModes' <- count (nrAtoms' - 2) $ do
         modeNumbers' <- count 3 $ do
@@ -161,15 +185,15 @@ gaussianFreqParser = do
         traceShowM modeNumbers'
 
         _ <- takeWhile (not <$> isEndOfLine)
-        endOfLine     
+        endOfLine
 
         symmetries' <- count 3 $ do
             skipSpace                   -- Whitespaces before
             manyTill anyChar space      -- Symmetry symbol
 
         -- Skip until the next block
-        _ <- manyTill anyChar (string "--")     
-        
+        _ <- manyTill anyChar (string "--")
+
         traceShowM symmetries'
 
         frequencies' <- count 3 $ do
@@ -178,43 +202,43 @@ gaussianFreqParser = do
 
         traceShowM frequencies'
 
-        _ <- manyTill anyChar (string "--")     
-    
+        _ <- manyTill anyChar (string "--")
+
         reducedMass' <- count 3 $ do
             skipSpace
             double                      -- Take the reduced mass
-    
+
         traceShowM reducedMass'
 
-        _ <- manyTill anyChar (string "--")     
+        _ <- manyTill anyChar (string "--")
 
         forceConst' <- count 3 $ do
             skipSpace
             double                      -- Take the force constant
-            
+
         traceShowM forceConst'
 
-        _ <- manyTill anyChar (string "--")     
+        _ <- manyTill anyChar (string "--")
 
         irIntensity' <- count 3 $ do
             skipSpace
             double                      -- Take the IR intensity
-            
+
         traceShowM irIntensity'
 
         _ <- takeWhile (not <$> isEndOfLine)
-        endOfLine     
+        endOfLine
 
         -- Skip header
         _ <- takeWhile (not <$> isEndOfLine)
-        endOfLine 
+        endOfLine
 
         atoms' <- count nrAtoms' $ do
             -- Parse atom displacements line by line
             skipSpace
             centerNum' <- decimal <* skipSpace
             atomNum' <- decimal
-            
+
             -- traceShowM [centerNum', atomNum']
 
             count 3 $ do
@@ -230,7 +254,7 @@ gaussianFreqParser = do
                 }
 
         let atomsOrdered' = transpose atoms'
-        
+
         traceShowM $ length <$> atomsOrdered'
 
         return [
@@ -239,11 +263,11 @@ gaussianFreqParser = do
                 _redMass        = Just $ reducedMass' !! ii,
                 _forceConst     = Just $ forceConst' !! ii,
                 _irIntensity    = Just $ irIntensity' !! ii,
-                _displacement   = Just $ atomsOrdered' !! ii
+                _displacement   = atomsOrdered' !! ii
             } | ii <- [0..2]]
-       
+
     traceShowM $ length <$> normalModes'
-    
+
     -- return normalModes'
     return $ concat normalModes'
 
@@ -260,34 +284,69 @@ doGaussianParsing filePath = do
     fileContent <- TIO.readFile filePath
     let gaussParse = parseOnly gaussianParser fileContent
 
-    case gaussParse of 
+    case gaussParse of
         Left    err     -> error err
         Right   gInfo   -> return gInfo
 
 
 doFreqParsing :: FilePath -> IO (GaussianInfo, [NormalMode])
+-- Parses a Gaussian freq calculation output to a GaussianInfo instance and a 
+-- list of Normalmode instances. Returns the output as a tuple in IO.
 doFreqParsing filePath = do
     fileContent <- TIO.readFile filePath
-    
+
     let gaussParse = parseOnly gaussianParser       fileContent
     let gaussFreq  = parseOnly gaussianFreqParser   fileContent
 
-    gFreq <- case gaussFreq of 
+    gFreq <- case gaussFreq of
         Left    err     -> error err
         Right   gFreq   -> return gFreq
-    
-    gInfo <- case gaussParse of 
+
+    gInfo <- case gaussParse of
         Left    err     -> error err
         Right   gInfo   -> return gInfo
-    
+
     return (gInfo, gFreq)
 
 
 doGenericParsing :: FilePath -> Parser a -> IO a
+-- Parses a file using a specified parser and returns the result in IO
 doGenericParsing filePath parser = do
     fileContent <- TIO.readFile filePath
     let gParse = parseOnly parser fileContent
 
-    case gParse of 
+    case gParse of
         Left    err     -> error err
         Right   gInfo   -> return gInfo
+
+
+getListOfCoords :: Molecule -> [(Double, Double, Double)]
+getListOfCoords molA' = molA' ^.. atoms . each . coordinate
+
+
+calculateCoM :: Molecule -> (Double, Double, Double)
+-- Calculates the center of mass of a given molecule of type Molecule (from Haskem.Types)
+calculateCoM molecule' = (xCoM, yCoM, zCoM)
+    where 
+        atomsList   = getListOfCoords molecule' 
+        massList    = map elemMass $ molecule' ^.. atoms . each . atomNumber
+        fullMass    = sum massList
+        xCoM        = (/ fullMass) $ sum $ zipWith (*) massList $ map fst3 atomsList
+        yCoM        = (/ fullMass) $ sum $ zipWith (*) massList $ map snd3 atomsList
+        zCoM        = (/ fullMass) $ sum $ zipWith (*) massList $ map thd3 atomsList
+
+
+-- TODO!
+-- calcDisplacementVector :: Molecule -> Molecule -> Maybe Molecule
+-- calcDisplacementVector molA molB = displacedM
+--     where
+--         atomsA          = getListOfCoords molA
+--         atomsB          = getListOfCoords molB
+--         nrOfAtomsA      = molA ^. nrOfAtoms
+--         nrOfAtomsB      = molA ^. nrOfAtoms
+--         xDisplacement   = zipWith (-) (map fst3 atomsA) $ map fst3 atomsB
+--         yDisplacement   = zipWith (-) (map snd3 atomsA) $ map snd3 atomsB
+--         zDisplacement   = zipWith (-) (map thd3 atomsA) $ map thd3 atomsB
+--         displacedM      = if nrOfAtomsA == nrOfAtomsB then
+--                             Molecule "" nrOfAtomsA ()
+--                             else

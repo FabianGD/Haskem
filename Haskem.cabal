@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 42c86154bc345ebd571c88b8c9b3c74c5d5f0732e41173103be1805fbf1cb13b
+-- hash: 60a6148ab2663d718ff0612aa5c1f9aabdf3a7742b83a97ea0ea6d4a3e24f46a
 
 name:           Haskem
 version:        0.1.0.0
@@ -36,9 +36,11 @@ library
   build-depends:
       attoparsec
     , base >=4.7 && <5
+    , containers
     , filepath
     , microlens-platform
     , text
+    , utility-ht
   default-language: Haskell2010
 
 executable Haskem-exe
@@ -52,9 +54,11 @@ executable Haskem-exe
       Haskem
     , attoparsec
     , base >=4.7 && <5
+    , containers
     , filepath
     , microlens-platform
     , text
+    , utility-ht
   default-language: Haskell2010
 
 test-suite Haskem-test
@@ -69,7 +73,9 @@ test-suite Haskem-test
       Haskem
     , attoparsec
     , base >=4.7 && <5
+    , containers
     , filepath
     , microlens-platform
     , text
+    , utility-ht
   default-language: Haskell2010

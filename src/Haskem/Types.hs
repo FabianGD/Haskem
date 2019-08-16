@@ -41,14 +41,14 @@ data NormalMode = NormalMode
         _redMass        ::  Maybe Double,
         _forceConst     ::  Maybe Double,
         _irIntensity    ::  Maybe Double,
-        _displacement   ::  Maybe [Atom]
+        _displacement   ::  [Atom]
     } deriving (Eq, Show)
 makeLenses ''NormalMode
 
 
 data Molecule = Molecule
     {
-        _molName    :: Maybe String,
+        _molName    :: String,
         _nrOfAtoms  :: Int,
         _atoms      :: [Atom]
     }   

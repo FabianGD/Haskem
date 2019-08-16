@@ -25,6 +25,8 @@ dependencies:
 - text
 - microlens-platform
 - filepath
+- utility-ht
+- containers
 
 library:
   source-dirs: src
