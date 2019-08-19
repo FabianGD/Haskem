@@ -4,13 +4,13 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 60a6148ab2663d718ff0612aa5c1f9aabdf3a7742b83a97ea0ea6d4a3e24f46a
+-- hash: c0f2bb4ccfc18383e047da6ae160508f61a94b8f50d5c15a245cfbce63d78c68
 
 name:           Haskem
 version:        0.1.0.0
 description:    Please see the README on GitHub at <https://github.com/fabiangd/Haskem#readme>
-homepage:       https://github.com/FabianGD/iirc2nmodes#readme
-bug-reports:    https://github.com/FabianGD/iirc2nmodes/issues
+homepage:       https://github.com/FabianGD/Haskem#readme
+bug-reports:    https://github.com/FabianGD/Haskem/issues
 author:         Fabian George Droege
 maintainer:     fabian.g.droege@gmail.com
 copyright:      2019 Fabian George Droege
@@ -23,11 +23,12 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/FabianGD/iirc2nmodes
+  location: https://github.com/FabianGD/Haskem
 
 library
   exposed-modules:
       Haskem.Lib
+      Haskem.Parsers
       Haskem.Types
   other-modules:
       Paths_Haskem
@@ -38,6 +39,7 @@ library
     , base >=4.7 && <5
     , containers
     , filepath
+    , formatting
     , microlens-platform
     , text
     , utility-ht
@@ -56,6 +58,7 @@ executable Haskem-exe
     , base >=4.7 && <5
     , containers
     , filepath
+    , formatting
     , microlens-platform
     , text
     , utility-ht
@@ -75,6 +78,7 @@ test-suite Haskem-test
     , base >=4.7 && <5
     , containers
     , filepath
+    , formatting
     , microlens-platform
     , text
     , utility-ht

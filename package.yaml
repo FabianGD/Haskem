@@ -1,6 +1,6 @@
 name:                Haskem
 version:             0.1.0.0
-github:              "FabianGD/iirc2nmodes"
+github:              "FabianGD/Haskem"
 license:             MIT
 author:              "Fabian George Droege"
 maintainer:          "fabian.g.droege@gmail.com"
@@ -27,6 +27,7 @@ dependencies:
 - filepath
 - utility-ht
 - containers
+- formatting
 
 library:
   source-dirs: src

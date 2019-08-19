@@ -17,7 +17,11 @@ module Haskem.Types
       redMass,
       forceConst,
       irIntensity,
-      displacement
+      displacement,
+      CartesianCoord(..),
+      xCoord,
+      yCoord,
+      zCoord
     ) where
 
 import              Data.Char
@@ -25,11 +29,20 @@ import              Data.List
 import              Lens.Micro.Platform
 
 
+data CartesianCoord = CartesianCoord
+        {
+            _xCoord     :: Double,
+            _yCoord     :: Double,
+            _zCoord     :: Double
+        } deriving (Eq, Show)
+makeLenses ''CartesianCoord
+
+
 data Atom = Atom 
     {
         _centerNumber   :: Maybe Int,
         _atomNumber     :: Int,
-        _coordinate     :: (Double, Double, Double)
+        _coordinate     :: CartesianCoord
     } 
     deriving (Eq, Show)
 makeLenses ''Atom
