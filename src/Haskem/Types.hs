@@ -51,6 +51,7 @@ makeLenses ''Atom
 data NormalMode = NormalMode
     {
         _frequency      ::  Double,
+        _idx            ::  Maybe Int,
         _redMass        ::  Maybe Double,
         _forceConst     ::  Maybe Double,
         _irIntensity    ::  Maybe Double,

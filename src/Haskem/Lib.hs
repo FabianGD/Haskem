@@ -12,7 +12,9 @@ module Haskem.Lib
       elemSym2Num,
       calculateCoM,
       calcDisplacementVector,
-      writeMoleculeToXYZ
+      writeMoleculeToXYZ,
+      projectDonN,
+      calcProjectionVec
     ) where
 
 import              Haskem.Parsers
@@ -88,8 +90,8 @@ getListOfCoords :: Molecule -> [CartesianCoord]
 getListOfCoords molA' = molA' ^.. atoms . each . coordinate
 
 
-calculateCoM :: Molecule -> CartesianCoord
 -- Calculates the center of mass of a given molecule of type Molecule (from Haskem.Types)
+calculateCoM :: Molecule -> CartesianCoord
 calculateCoM molecule' = CartesianCoord xCoM yCoM zCoM
     where 
         atomsList   = getListOfCoords molecule' 
@@ -100,7 +102,10 @@ calculateCoM molecule' = CartesianCoord xCoM yCoM zCoM
         zCoM        = (/ fullMass) $ sum $ zipWith (*) massList $ map (^. zCoord) atomsList
 
 
-calcDisplacementVector :: Molecule -> Molecule -> Maybe Molecule
+-- Calculate a displacement vector from two molecular geometries. 
+-- Outputs a maybe molecule (in case the geometries do not match 
+-- (checked via number of atoms and the list of element numbers))
+calcDisplacementVector :: Molecule -> Molecule -> [CartesianCoord]
 calcDisplacementVector molA molB = 
     do
         let nrOfAtomsA  = molA ^. nrOfAtoms
@@ -114,25 +119,39 @@ calcDisplacementVector molA molB =
                 let xD      = zipWith (-) (map (^. xCoord) atomsA) $ map (^. xCoord) atomsB
                 let yD      = zipWith (-) (map (^. yCoord) atomsA) $ map (^. yCoord) atomsB
                 let zD      = zipWith (-) (map (^. zCoord) atomsA) $ map (^. zCoord) atomsB
-                let zipXYZ  = zipWith3 CartesianCoord xD yD zD
-                let atomsD  = zipWith3 Atom [Nothing | _ <- elemA] elemA zipXYZ
-                Just $ Molecule "" nrOfAtomsA atomsD
+                zipWith3 CartesianCoord xD yD zD
             else 
-                Nothing
+                []
 
 
+-- Writes a "Molecule" back to disk as a .xyz file                 
 writeMoleculeToXYZ :: Molecule -> FilePath -> IO ()
-writeMoleculeToXYZ molA fp = 
-    do
-        let coordinates     = getListOfCoords molA
-        let nrOfAtomsA      = molA ^. nrOfAtoms
-        let elems           = map elemNum2Sym $ molA ^.. atoms . each . atomNumber
-        let lineList        = zipWith4 (F.format xyzFormat)
-                                elems 
-                                (map (^. xCoord) coordinates) 
-                                (map (^. yCoord) coordinates) 
-                                (map (^. zCoord) coordinates)
+writeMoleculeToXYZ molA fp = writeFile fp (show nrOfAtomsA 
+                                ++ "\nThanks for using Haskem!\n" 
+                                ++ T.unpack (T.unlines lineList))
+    where
+        coordinates = getListOfCoords molA
+        nrOfAtomsA  = molA ^. nrOfAtoms
+        elems       = map elemNum2Sym $ molA ^.. atoms . each . atomNumber
+        lineList    = zipWith4 (F.format xyzFormat)
+                        elems 
+                        (map (^. xCoord) coordinates) 
+                        (map (^. yCoord) coordinates) 
+                        (map (^. zCoord) coordinates)
                                 
-        writeFile fp (show nrOfAtomsA 
-                        ++ "\nThanks for using Haskem!\n" 
-                        ++ T.unpack (T.unlines lineList))
+
+projectDonN :: [CartesianCoord] -> NormalMode -> Double
+projectDonN displCoordsA modesA = projectCoordNM
+    where
+        displCoordsNM   = modesA ^.. displacement . each .coordinate  :: [CartesianCoord]
+        projectCoordNM  = sum [sum $ zipWith (*) 
+                            (map ( ^. cc) displCoordsA) 
+                            (map ( ^. cc) displCoordsNM) | cc <- [xCoord, yCoord, zCoord]] 
+
+
+calcProjectionVec :: [NormalMode] -> [CartesianCoord] -> [Double]
+calcProjectionVec nModes displCoords = projectionVec
+        where
+            projectionVec = map (projectDonN displCoords) nModes
+
+

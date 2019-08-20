@@ -251,6 +251,7 @@ gaussianFreqParser = do
         return [
             NormalMode {
                 _frequency      = frequencies' !! ii,
+                _idx            = Just $ modeNumbers' !! ii,
                 _redMass        = Just $ reducedMass' !! ii,
                 _forceConst     = Just $ forceConst' !! ii,
                 _irIntensity    = Just $ irIntensity' !! ii,
