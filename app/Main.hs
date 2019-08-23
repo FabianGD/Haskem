@@ -1,9 +1,11 @@
 module Main where
 
 import Haskem.Lib
+import System.Environment
+import System.IO
 
 main :: IO ()
 main = do 
-    parsedData <- doFreqParsing "/scratch/tmp/gaussian/FC-B35/freq/T123_TD_26_16_FC-B35.log"
-
+    args <- getArgs 
+    -- TODO: Build a CLI from the functions we have
     return ()

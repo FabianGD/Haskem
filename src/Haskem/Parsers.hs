@@ -6,7 +6,9 @@ module Haskem.Parsers(
     gaussianParser,
     elemNum2Sym,
     elemSym2Num,
-    elemMass
+    elemMass,
+    vdWRadius,
+    covRadius
 ) where
 
 import              Haskem.Types
@@ -17,7 +19,6 @@ import              Data.Maybe
 import              Data.Tuple.HT               hiding (double, triple)
 import              Debug.Trace
 import              Data.List                   hiding (takeWhile)
-
 
 
 elemSym2Num :: String -> Int
@@ -37,7 +38,7 @@ elemNum2Sym elemSym = fromMaybe "" $ Map.lookup elemSym elemMap
                                              ("Ne", 10),   ("Na", 11), ("Mg", 12),
                                              ("Al", 13),   ("Si", 14), ("P", 15),
                                              ("S", 16),    ("Cl", 17), ("Ar", 18)]
-                                            
+
 
 elemMass :: Int -> Double
 elemMass elemNum = fromMaybe 1 $ Map.lookup elemNum elemMap  
@@ -47,6 +48,24 @@ elemMass elemNum = fromMaybe 1 $ Map.lookup elemNum elemMap
                                   (10, 20.1797),    (11, 22.9897),  (12, 24.305),
                                   (13, 26.9815),    (14, 28.0855),  (15, 30.9738),
                                   (16, 32.065),     (17, 35.453),   (18, 39.948)]
+
+
+vdWRadius :: Int -> Double
+vdWRadius elemNum = fromMaybe 1.2 $ Map.lookup elemNum vdWMap
+    where vdWMap = Map.fromList [(1, 1.20),     (2, 1.40),  (3, 1.82),  (4, 1.53),
+                                 (5, 1.92),     (6, 1.70),  (7, 1.55),  (8, 1.52),  
+                                 (9, 1.47),     (10, 1.54), (11, 2.27), (12, 1.73),   
+                                 (13, 1.84),    (14, 2.10), (15, 1.80), (16, 1.80),
+                                 (17, 1.75),    (18, 1.88)]
+
+
+covRadius :: Int -> Double
+covRadius elemNum = fromMaybe 1.2 $ Map.lookup elemNum vdWMap
+    where vdWMap = Map.fromList [(1, 0.31),     (2, 0.28),  (3, 0.96),  (4, 0.96),
+                                (5, 0.84),     (6, 0.73),  (7, 0.71),  (8, 0.66),  
+                                (9, 0.57),     (10, 0.58), (11, 1.66), (12, 1.41),   
+                                (13, 1.21),    (14, 1.11), (15, 1.07), (16, 1.05),
+                                (17, 1.02),    (18, 1.06)]
 
 
 xyzParser :: Parser Molecule
@@ -108,6 +127,7 @@ gaussianParseXYZ = do
             _atomNumber     = atomNumber',
             _coordinate     = CartesianCoord coordx' coordy' coordz'
         }
+
 
 gaussianParser :: Parser GaussianInfo
 gaussianParser = do

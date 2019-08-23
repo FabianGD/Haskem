@@ -21,13 +21,35 @@ module Haskem.Types
       CartesianCoord(..),
       xCoord,
       yCoord,
-      zCoord
+      zCoord,
+      AtomSpec(..),
+      element,
+      geomNum,
+      LinearBond(..),
+      bAtomA,
+      bAtomB,
+      bLengt,
+      Angle(..),
+      aAtomA,
+      aAtomB,
+      aAtomC,
+      aAngle,
+      Dihedral(..),
+      dAtomA,
+      dAtomB,
+      dAtomC,
+      dAtomD,
+      dAngle
     ) where
 
 import              Data.Char
 import              Data.List
 import              Lens.Micro.Platform
+import              Data.Vector
 
+{-
+Data types to store a molecule in cartesian space
+-}
 
 data CartesianCoord = CartesianCoord
         {
@@ -78,3 +100,51 @@ data GaussianInfo = GaussianInfo
     } 
     deriving (Show)
 makeLenses ''GaussianInfo
+
+
+{-
+Data types for redundant internal coordinates:
+-}
+data AtomSpec = AtomSpec {
+    _element ::  String,
+    _geomNum ::  Int
+    } deriving (Eq, Show)
+makeLenses ''AtomSpec
+
+
+data LinearBond = LinearBond {
+    _bAtomA ::  AtomSpec,
+    _bAtomB ::  AtomSpec,
+    _bLengt ::  Double
+    } 
+    deriving (Eq, Show)
+makeLenses ''LinearBond
+
+
+data Angle = Angle {
+    _aAtomA ::  AtomSpec,
+    _aAtomB ::  AtomSpec,
+    _aAtomC ::  AtomSpec,
+    _aAngle ::  Double
+    } 
+    deriving (Eq, Show)
+makeLenses ''Angle  
+
+
+data Dihedral = Dihedral {
+    _dAtomA ::  AtomSpec,
+    _dAtomB ::  AtomSpec,
+    _dAtomC ::  AtomSpec,
+    _dAtomD ::  AtomSpec,
+    _dAngle ::  Double
+    }
+    deriving (Eq, Show)
+makeLenses ''Dihedral
+
+
+data Fragment = Fragment {
+    _name       ::  String,
+    _bonds      ::  Vector LinearBond,
+    _angles     ::  Vector Angle,
+    _dihedral   ::  Vector Dihedral
+}

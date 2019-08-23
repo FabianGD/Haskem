@@ -28,6 +28,9 @@ dependencies:
 - utility-ht
 - containers
 - formatting
+- vector
+- hmatrix
+- extra
 
 library:
   source-dirs: src
